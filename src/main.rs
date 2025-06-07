@@ -16,7 +16,7 @@ use confidential::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Create Connection to local RPC
+    // ======== Create Connection to local RPC ========
     let rpc_client = Arc::new(RpcClient::new_with_commitment(
         String::from("http://localhost:8899"),
         CommitmentConfig::confirmed(),
@@ -40,14 +40,14 @@ async fn main() -> Result<()> {
         Arc::new(alice.insecure_clone()), // Payer
     );
 
-    println!("\n ======== Create Mint Account with ConfidentialTransferMint extension ======== \n");
+    // ======== Create Mint Account with ConfidentialTransferMint extension ======== 
     create_confidential_mint(&alice.pubkey(), &[&mint_kp, &alice], &token).await?;
 
     println!("\n========  Configure token account created for bob and alice ======= \n");
     let alice_res = create_confidential_token_acc(&alice, &mint_kp, &rpc_client, &token).await?;
     let bob_res = create_confidential_token_acc(&bob, &mint_kp, &rpc_client, &token).await?;
 
-    // Minting some tokens for alice token account
+    // ======== Minting some tokens for alice token account ========
     token
         .mint_to(
             &alice_res.token_account_kp.pubkey(), // Destination
@@ -75,12 +75,14 @@ async fn main() -> Result<()> {
         &alice_res.user_elgamal_kp,
         &alice_res.user_aes_kp,
         &alice,
+
+        &bob,
         &bob_res.user_elgamal_kp,
+        &bob_res.user_aes_kp,
         &bob_res.token_account_kp,
     )
     .await?;
 
-    // Withdraw Tokens Confidentially
 
     Ok(())
 }

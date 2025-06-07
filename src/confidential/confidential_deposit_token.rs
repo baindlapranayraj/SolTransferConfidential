@@ -7,9 +7,20 @@ use spl_token_client::{
 };
 
 use crate::helper::handle_token_response;
-
 use super::apply_pending;
 
+/// Deposits tokens into a confidential account.
+///
+/// # Arguments
+/// * `token_account_kp` - The confidential token account keypair.
+/// * `payer` - The keypair paying for the transaction.
+/// * `token` - The SPL Token client.
+/// * `elgamal_kp` - ElGamal keypair for confidential encryption.
+/// * `aes_kp` - AE key for confidential encryption.
+///
+/// # Flow
+/// 1. Deposit tokens to the 'pending' confidential balance.
+/// 2. Apply the 'pending' balance to make it available for spending.
 pub async fn deposite_token_to_confidential(
     token_account_kp: &Keypair,
     payer: &Keypair,
@@ -17,25 +28,22 @@ pub async fn deposite_token_to_confidential(
     elgamal_kp: &ElGamalKeypair,
     aes_kp: &AeKey,
 ) -> Result<()> {
-    // Confidential balance has separate "pending" and "available" balances
-    //
-    // 1) First we deposite our tokens to pending account
-    // 2) Second we deposite our tokens to available account
-
-    // 1) Deposit tokens  balance to  "pending" confidential balance
+    // Confidential balance has separate 'pending' and 'available' balances.
+    // 1) Deposit tokens to the 'pending' confidential balance.
     let deposit_sig = token
         .confidential_transfer_deposit(
             &token_account_kp.pubkey(),
             &payer.pubkey(),
-            100 * 10u64.pow(6),
-            6,
+            100 * 10u64.pow(6), // Amount to deposit (adjust for decimals)
+            6,                  // Token decimals
             &[payer],
         )
         .await?;
 
+    // Print transaction signature or logs
     handle_token_response(&deposit_sig, String::from("deposit tokens to pending")).await?;
 
-    // 2) Apply the "pending" balance to "available" balances
+    // 2) Apply the 'pending' balance to make it available for spending.
     apply_pending(&token, &payer, &elgamal_kp, &aes_kp, &token_account_kp).await?;
 
     Ok(())

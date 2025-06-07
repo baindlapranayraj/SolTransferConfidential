@@ -2,6 +2,23 @@
 
 This project demonstrates how to use Solana's SPL Token 2022 program with the Confidential Transfer extension, enabling private token transfers using zero-knowledge proofs. The code is written in Rust and uses the Solana and SPL Token client libraries.
 
+# What is Confidential Tokens
+Confidential tokens on Solana are special tokens that allow you to transfer amounts privately. While the token account addresses are public, the actual token balances and transfer amounts are hidden using encryption and cryptography. Only you (and optionally an **auditor**) know your balance, but you can still send and receive tokens securely and privately.
+
+# What is ZK Proofs ?
+Zero-knowledge proofs are cryptographic tools that let you prove something is true without revealing the underlying secret. In confidential token transfers, they let you prove the transfer is valid without revealing the amount or sensitive account details.
+
+## ElGamal Encryption in Confidential Transfers 
+ElGamal encryption is a public-key cryptography system used in Solana's confidential token transfers to keep token amounts private. Each confidential token account generates its own ElGamal keypair (a public and private key). When tokens are transferred or deposited confidentially, the amounts are encrypted using the recipient's ElGamal public key. Only the account owner, who holds the corresponding private key, can decrypt and view the actual token balance.
+
+This encryption ensures that:
+- The transaction amounts remain hidden from everyone except the intended recipient.
+- Zero-knowledge proofs are used to prove the validity of transactions without revealing the actual amounts.
+- The system maintains privacy while still allowing the blockchain to verify that all operations are correct and secure.
+
+In summary, ElGamal encryption is a core part of how confidential transfers work, enabling privacy-preserving transactions on Solana.
+
+
 ## Features
 - **Create a confidential mint**: Deploy a new SPL Token mint with the Confidential Transfer extension enabled.
 - **Create confidential token accounts**: Set up token accounts for users (e.g., Alice and Bob) with confidential transfer capabilities.
@@ -9,6 +26,8 @@ This project demonstrates how to use Solana's SPL Token 2022 program with the Co
 - **Deposit tokens confidentially**: Move tokens into a confidential (private) balance using zero-knowledge proofs.
 - **Confidential transfer**: Privately transfer tokens between accounts without revealing the amount on-chain.
 - **Apply pending balances**: Move deposited tokens from a pending state to an available confidential balance.
+
+
 
 ## How It Works
 1. **Setup**: Connects to a local Solana RPC node and generates keypairs for users.

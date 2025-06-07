@@ -19,15 +19,16 @@ use spl_token_client::{
 
 // =================== Structs ===================
 
+/// Holds the confidential token account keypair and associated cryptographic keys.
 pub struct ConfTokenAccountRes {
-    pub token_account_kp: Keypair,
-    pub user_elgamal_kp: ElGamalKeypair,
-    pub user_aes_kp: AeKey,
+    pub token_account_kp: Keypair,      // Token account keypair
+    pub user_elgamal_kp: ElGamalKeypair, // ElGamal keypair for confidential encryption
+    pub user_aes_kp: AeKey,             // AE key for confidential encryption
 }
 
 // =================== Helper Functions ===================
 
-// Generats Keypair and fund some SOL's init
+/// Generates a new keypair and funds it with 1 SOL from the faucet.
 pub async fn keypair_gen(client: &RpcClient) -> Result<Keypair> {
     let keypair = Keypair::new();
 
@@ -37,6 +38,7 @@ pub async fn keypair_gen(client: &RpcClient) -> Result<Keypair> {
 
     client.confirm_transaction(&sig).await?;
 
+    // Wait for confirmation
     loop {
         let is_confirmed = client.confirm_transaction(&sig).await?;
         if is_confirmed {
@@ -47,7 +49,7 @@ pub async fn keypair_gen(client: &RpcClient) -> Result<Keypair> {
     Ok(keypair)
 }
 
-// Fetches ConfidentialTransferMint Account
+/// Fetches and prints the ConfidentialTransferMint extension for a mint account.
 pub async fn fetch_mint_account(
     pub_key: &Pubkey,
     rpc_client: &Token<ProgramRpcClientSendTransaction>,
@@ -62,6 +64,7 @@ pub async fn fetch_mint_account(
     Ok(())
 }
 
+/// Submits a vector of instructions as a transaction and waits for confirmation.
 pub async fn complete_ixs(
     rpc_client: &RpcClient,
     ix: Vec<Instruction>,
@@ -80,6 +83,7 @@ pub async fn complete_ixs(
     Ok(())
 }
 
+/// Handles and prints the response from a token client transaction.
 pub async fn handle_token_response(sig: &RpcClientResponse, content: String) -> Result<()> {
     match sig {
         RpcClientResponse::Simulation(rpc_res) => {
@@ -98,11 +102,13 @@ pub async fn handle_token_response(sig: &RpcClientResponse, content: String) -> 
     Ok(())
 }
 
+/// Fetches and prints the confidential token account and its extensions.
 pub async fn fetch_token_account_with_extensions(
     rpc_client: &RpcClient,
     token_account_pubkey: &Pubkey,
 ) -> Result<()> {
-    // Fetch raw account data from the chain
+    // Fetch raw account data from the chain &[u8] type data
+    println!("Fetching the raw token account data.......");
     let account_data = rpc_client
         .get_account_data(token_account_pubkey)
         .await
@@ -114,12 +120,12 @@ pub async fn fetch_token_account_with_extensions(
             .map_err(|e| anyhow!("Failed to unpack account with extensions: {e}"))?;
 
     // Print the base account data
-    println!("Base Account: {:#?}", state_with_ext.base);
+    println!("\n Base Account: {:#?}", state_with_ext.base);
 
     // Find and print the ConfidentialTransfer extension if present
     let ext = state_with_ext.get_extension::<ConfidentialTransferAccount>()?;
 
-    println!("Confidential Elgamal Pubkey {:#?}", ext);
+    println!("\n Confidential Token Account {:#?}", ext);
 
     Ok(())
 }
