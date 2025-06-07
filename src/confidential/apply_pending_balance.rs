@@ -17,20 +17,26 @@ pub async fn apply_pending(
     aes_kp: &AeKey,                 // AE key for decrypting the confidential balance
     token_account_kp: &Keypair,     // The confidential token account
 ) -> Result<()> {
-    // Call the SPL Token client to apply the pending balance
+    println!("\n======== Converting Pending Balance to Available Balance ========");
+    println!("Account: {}", token_account_kp.pubkey());
+    println!("Authority: {}", payer.pubkey());
+    println!("\nStep 1: Decrypting pending balance using account's cryptographic keys...");
+    
     let apply_sig = token
         .confidential_transfer_apply_pending_balance(
             &token_account_kp.pubkey(),
             &payer.pubkey(),
-            None, // No auditor
+            None,
             elgamal_kp.secret(),
             aes_kp,
             &[payer],
         )
         .await?;
 
-    // Print transaction signature or logs
     handle_token_response(&apply_sig, String::from("applying pending account")).await?;
 
+    println!("\nStep 2: Converting decrypted pending balance to available balance...");
+    println!("✓ Successfully moved pending balance to available balance");
+    println!("Note: The available balance is encrypted and can only be viewed by the account owner");
     Ok(())
 }

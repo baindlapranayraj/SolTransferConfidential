@@ -23,7 +23,12 @@ pub async fn create_confidential_mint(
     signers: &[&Keypair],
     token: &Token<ProgramRpcClientSendTransaction>,
 ) -> Result<()> {
-    // Set up the ConfidentialTransfer extension parameters for the mint
+    println!("\n======== Creating Confidential Mint Account ========");
+    println!("Setting up ConfidentialTransfer extension parameters...");
+    println!("- Mint Authority: {}", mint_authority);
+    println!("- Auto-approve new accounts: enabled");
+    println!("- Auditor: disabled (no global auditor)");
+
     let extension_initialization_params = ExtensionInitializationParams::ConfidentialTransferMint {
         authority: Some(*mint_authority),           // Set the mint authority
         auto_approve_new_accounts: true,            // Automatically approve new confidential accounts

@@ -8,7 +8,7 @@ use spl_token_client::{
     client::{ProgramRpcClientSendTransaction, RpcClientResponse},
     spl_token_2022::{
         extension::{
-            confidential_transfer::{ConfidentialTransferAccount, ConfidentialTransferMint},
+            confidential_transfer::{ ConfidentialTransferMint},
             BaseStateWithExtensions, StateWithExtensionsOwned,
         },
         solana_zk_sdk::encryption::{auth_encryption::AeKey, elgamal::ElGamalKeypair},
@@ -24,7 +24,7 @@ pub struct ConfTokenAccountRes {
     pub token_account_kp: Keypair,      // Token account keypair
     pub user_elgamal_kp: ElGamalKeypair, // ElGamal keypair for confidential encryption
     pub user_aes_kp: AeKey,             // AE key for confidential encryption
-}
+}   
 
 // =================== Helper Functions ===================
 
@@ -123,9 +123,9 @@ pub async fn fetch_token_account_with_extensions(
     println!("\n Base Account: {:#?}", state_with_ext.base);
 
     // Find and print the ConfidentialTransfer extension if present
-    let ext = state_with_ext.get_extension::<ConfidentialTransferAccount>()?;
+    // let ext = state_with_ext.get_extension::<ConfidentialTransferAccount>()?;
 
-    println!("\n Confidential Token Account {:#?}", ext);
+    // println!("\n Confidential Token Account {:#?}", ext);
 
     Ok(())
 }

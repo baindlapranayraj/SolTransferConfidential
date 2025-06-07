@@ -35,24 +35,33 @@ pub async fn create_confidential_token_acc(
     rpc_client: &RpcClient,
     token: &Token<ProgramRpcClientSendTransaction>,
 ) -> Result<ConfTokenAccountRes> {
+    println!("\n======== Creating New Confidential Token Account ========");
     // Generate a new keypair for the user's token account
     let token_account_kp = Keypair::new();
+    println!("Generated new token account: {}", token_account_kp.pubkey());
 
+    println!("Generating cryptographic keys for confidential transactions...");
     // Generate ElGamal and AES keys for confidential encryption, unique to this account
     let elgamal_kp = ElGamalKeypair::new_from_signer(&payer, &token_account_kp.pubkey().to_bytes())
         .expect("Unable to create Elgamal KP");
+    println!("Created ElGamal keypair for confidential encryption");
+    
     let aes_kp = AeKey::new_from_signer(&payer, &token_account_kp.pubkey().to_bytes())
         .expect("Unable to create AES KP");
+    println!("Created AES key for confidential encryption");
 
+    println!("\nCalculating account space and rent requirements...");
     // Calculate the required space for the account with the ConfidentialTransfer extension
     let required_space = ExtensionType::try_calculate_account_len::<Account>(&[
         ExtensionType::ConfidentialTransferAccount,
     ])?;
+    println!("Required account space: {} bytes", required_space);
 
     // Get the minimum balance needed to make the account rent-exempt
     let rent_req = rpc_client
         .get_minimum_balance_for_rent_exemption(required_space)
         .await?;
+    println!("Required rent (lamports): {}", rent_req);
 
     // Instruction to create the new token account
     let create_account_ix = system_instruction::create_account(

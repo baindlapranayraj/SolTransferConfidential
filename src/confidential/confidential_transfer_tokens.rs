@@ -73,13 +73,22 @@ pub async fn transfer_tokens(
         None, // auditor ElGamal public key (none if no auditor)
     )?;
 
+    println!("\n======== Preparing Confidential Transfer ========");
+    println!("Transfer Details:");
+    println!("- Amount: {} tokens", amount);
+    println!("- From: {}", sender_token_kp.pubkey());
+    println!("- To: {}", recipint_token_kp.pubkey());
+
+    println!("\nGenerating Zero-Knowledge Proofs...");
+    println!("Creating proof context state accounts:");
+    
     // Create context state accounts for each proof
     let equality_proof_context_state_keypair = Keypair::new();  // Equality Proof
     let ciphertext_validity_proof_context_state_keypair = Keypair::new();  // Validity Proof
     let range_proof_context_state_keypair = Keypair::new();  // Range Proof
 
     // Create context state account for equality proof
-    println!("Creating equality proof context state account for transfer...");
+    println!("1. Creating Equality Proof (proves transferred amount is the same for sender and recipient)...");
     token
         .confidential_transfer_create_context_state_account(
             &equality_proof_context_state_keypair.pubkey(),
@@ -89,9 +98,10 @@ pub async fn transfer_tokens(
             &[&equality_proof_context_state_keypair],
         )
         .await?;
+    println!("   ✓ Equality proof created");
 
     // Create context state account for ciphertext validity proof
-    println!("Creating ciphertext validity proof context state account...");
+    println!("2. Creating Ciphertext Validity Proof (proves the encrypted amounts are valid)...");
     token
         .confidential_transfer_create_context_state_account(
             &ciphertext_validity_proof_context_state_keypair.pubkey(),
@@ -101,8 +111,10 @@ pub async fn transfer_tokens(
             &[&ciphertext_validity_proof_context_state_keypair],
         )
         .await?;
+    println!("   ✓ Ciphertext validity proof created");
 
     // Create context state account for range proof
+    println!("3. Creating Range Proof (proves the transfer amount is within valid range)...");
     token
         .confidential_transfer_create_context_state_account(
             &range_proof_context_state_keypair.pubkey(),
@@ -112,6 +124,7 @@ pub async fn transfer_tokens(
             &[&range_proof_context_state_keypair],
         )
         .await?;
+    println!("   ✓ Range proof created");
 
     // Execute the confidential transfer
     println!("Executing confidential transfer transaction...");

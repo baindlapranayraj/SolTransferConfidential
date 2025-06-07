@@ -28,8 +28,16 @@ pub async fn deposite_token_to_confidential(
     elgamal_kp: &ElGamalKeypair,
     aes_kp: &AeKey,
 ) -> Result<()> {
-    // Confidential balance has separate 'pending' and 'available' balances.
-    // 1) Deposit tokens to the 'pending' confidential balance.
+    println!("\n======== Depositing Tokens to Confidential Account ========");
+    println!("Note: Confidential transfers use a two-step process:");
+    println!("1. Deposit to 'pending' balance");
+    println!("2. Apply pending to 'available' balance");
+
+    // Step 1: Deposit tokens to the 'pending' confidential balance.
+    println!("\nStep 1: Depositing 100 tokens to pending balance...");
+    println!("- Token Account: {}", token_account_kp.pubkey());
+    println!("- Amount: 100 tokens (100,000,000 base units)");
+    
     let deposit_sig = token
         .confidential_transfer_deposit(
             &token_account_kp.pubkey(),
@@ -40,11 +48,13 @@ pub async fn deposite_token_to_confidential(
         )
         .await?;
 
-    // Print transaction signature or logs
     handle_token_response(&deposit_sig, String::from("deposit tokens to pending")).await?;
 
-    // 2) Apply the 'pending' balance to make it available for spending.
+    // Step 2: Apply the 'pending' balance to make it available for spending.
+    println!("\nStep 2: Converting pending balance to available balance...");
+    println!("- Token Account: {}", token_account_kp.pubkey());
     apply_pending(&token, &payer, &elgamal_kp, &aes_kp, &token_account_kp).await?;
+    println!("✓ Successfully converted pending balance to available balance");
 
     Ok(())
 }

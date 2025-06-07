@@ -16,17 +16,22 @@ use confidential::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // ======== Create Connection to local RPC ========
+    println!("\n======== Creating Connection to Local Solana RPC ========");
     let rpc_client = Arc::new(RpcClient::new_with_commitment(
         String::from("http://localhost:8899"),
         CommitmentConfig::confirmed(),
     ));
+    println!("Connected to Solana RPC at localhost:8899");
 
-    // Keypairs with funded wallet
+    println!("\n======== Generating Funded Keypairs for Alice and Bob ========");
     let bob = keypair_gen(&rpc_client).await?;
+    println!("Generated Bob's keypair: {}", bob.pubkey());
     let alice = keypair_gen(&rpc_client).await?;
+    println!("Generated Alice's keypair: {}", alice.pubkey());
 
+    println!("\n======== Creating New Mint Account ========");
     let mint_kp = Keypair::new(); // Mint Keypair
+    println!("Generated mint keypair: {}", mint_kp.pubkey());
 
     // To interact with solana programs
     let program_client = ProgramRpcClient::new(rpc_client.clone(), ProgramRpcClientSendTransaction);
@@ -47,6 +52,10 @@ async fn main() -> Result<()> {
     let alice_res = create_confidential_token_acc(&alice, &mint_kp, &rpc_client, &token).await?;
     let bob_res = create_confidential_token_acc(&bob, &mint_kp, &rpc_client, &token).await?;
 
+    // Print initial balances for Alice and Bob
+    println!("[Before Mint] Fetching Alice's confidential token account balance...");
+    fetch_token_account_with_extensions(&rpc_client, &alice_res.token_account_kp.pubkey()).await?;
+    
     // ======== Minting some tokens for alice token account ========
     token
         .mint_to(
@@ -56,6 +65,8 @@ async fn main() -> Result<()> {
             &[&alice],                            // Signers
         )
         .await?;
+
+    fetch_token_account_with_extensions(&rpc_client, &alice_res.token_account_kp.pubkey()).await?;
 
     // Depositing tokens for alice pending account and apply pending account to available balance
     deposite_token_to_confidential(
@@ -67,6 +78,8 @@ async fn main() -> Result<()> {
     )
     .await?;
 
+    fetch_token_account_with_extensions(&rpc_client, &alice_res.token_account_kp.pubkey()).await?;
+
     // Transfer Tokens Confidentially Alice to Bob
     transfer_tokens(
         50,
@@ -75,7 +88,6 @@ async fn main() -> Result<()> {
         &alice_res.user_elgamal_kp,
         &alice_res.user_aes_kp,
         &alice,
-
         &bob,
         &bob_res.user_elgamal_kp,
         &bob_res.user_aes_kp,
