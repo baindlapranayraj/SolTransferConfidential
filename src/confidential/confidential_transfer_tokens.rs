@@ -4,7 +4,9 @@ use spl_token_client::{
     client::ProgramRpcClientSendTransaction,
     spl_token_2022::{
         extension::{
-            confidential_transfer::{account_info::TransferAccountInfo, ConfidentialTransferAccount},
+            confidential_transfer::{
+                account_info::TransferAccountInfo, ConfidentialTransferAccount,
+            },
             BaseStateWithExtensions,
         },
         solana_zk_sdk::encryption::{auth_encryption::AeKey, elgamal::ElGamalKeypair},
@@ -61,7 +63,7 @@ pub async fn transfer_tokens(
     // Extract the confidential transfer extension data from the token account data
     let extension_data = token_account.get_extension::<ConfidentialTransferAccount>()?;
 
-    // Create TransferAccountInfo from the extension data
+    // Create TransferAccountInfo from the extension data to perform transfer instructions
     let transfer_account_info = TransferAccountInfo::new(extension_data);
 
     // Generate the proof data for the transfer (all ZKPs required for a confidential transfer)
@@ -81,11 +83,11 @@ pub async fn transfer_tokens(
 
     println!("\nGenerating Zero-Knowledge Proofs...");
     println!("Creating proof context state accounts:");
-    
+
     // Create context state accounts for each proof
-    let equality_proof_context_state_keypair = Keypair::new();  // Equality Proof
-    let ciphertext_validity_proof_context_state_keypair = Keypair::new();  // Validity Proof
-    let range_proof_context_state_keypair = Keypair::new();  // Range Proof
+    let equality_proof_context_state_keypair = Keypair::new(); // Equality Proof
+    let ciphertext_validity_proof_context_state_keypair = Keypair::new(); // Validity Proof
+    let range_proof_context_state_keypair = Keypair::new(); // Range Proof
 
     // Create context state account for equality proof
     println!("1. Creating Equality Proof (proves transferred amount is the same for sender and recipient)...");
@@ -93,7 +95,7 @@ pub async fn transfer_tokens(
         .confidential_transfer_create_context_state_account(
             &equality_proof_context_state_keypair.pubkey(),
             &sender_kp.pubkey(),
-            &transfer_proof_data.equality_proof_data,
+            &transfer_proof_data.equality_proof_data, // equality proof data
             false,
             &[&equality_proof_context_state_keypair],
         )
@@ -106,7 +108,9 @@ pub async fn transfer_tokens(
         .confidential_transfer_create_context_state_account(
             &ciphertext_validity_proof_context_state_keypair.pubkey(),
             &sender_kp.pubkey(),
-            &transfer_proof_data.ciphertext_validity_proof_data_with_ciphertext.proof_data,
+            &transfer_proof_data
+                .ciphertext_validity_proof_data_with_ciphertext
+                .proof_data,
             false,
             &[&ciphertext_validity_proof_context_state_keypair],
         )
@@ -130,8 +134,12 @@ pub async fn transfer_tokens(
     println!("Executing confidential transfer transaction...");
     let ciphertext_validity_proof_account_with_ciphertext = ProofAccountWithCiphertext {
         context_state_account: ciphertext_validity_proof_context_state_keypair.pubkey(),
-        ciphertext_lo: transfer_proof_data.ciphertext_validity_proof_data_with_ciphertext.ciphertext_lo,
-        ciphertext_hi: transfer_proof_data.ciphertext_validity_proof_data_with_ciphertext.ciphertext_hi,
+        ciphertext_lo: transfer_proof_data
+            .ciphertext_validity_proof_data_with_ciphertext
+            .ciphertext_lo,
+        ciphertext_hi: transfer_proof_data
+            .ciphertext_validity_proof_data_with_ciphertext
+            .ciphertext_hi,
     };
 
     let transfer_signature = token
@@ -161,28 +169,35 @@ pub async fn transfer_tokens(
         &recipt_elgmal_kp,
         &recipt_aes_kp,
         &recipint_token_kp,
-    ).await?;
+    )
+    .await?;
 
     // Close all proof context state accounts to reclaim rent
     println!("Closing all proof context state account...");
-    token.confidential_transfer_close_context_state_account(
-        &equality_proof_context_state_keypair.pubkey(),
-        &sender_kp.pubkey(),
-        &sender_kp.pubkey(),
-        &[&sender_kp],
-    ).await?;
-    token.confidential_transfer_close_context_state_account(
-        &ciphertext_validity_proof_context_state_keypair.pubkey(),
-        &sender_kp.pubkey(),
-        &sender_kp.pubkey(),
-        &[&sender_kp],
-    ).await?;
-    token.confidential_transfer_close_context_state_account(
-        &range_proof_context_state_keypair.pubkey(),
-        &sender_kp.pubkey(),
-        &sender_kp.pubkey(),
-        &[&sender_kp],
-    ).await?;
+    token
+        .confidential_transfer_close_context_state_account(
+            &equality_proof_context_state_keypair.pubkey(),
+            &sender_kp.pubkey(),
+            &sender_kp.pubkey(),
+            &[&sender_kp],
+        )
+        .await?;
+    token
+        .confidential_transfer_close_context_state_account(
+            &ciphertext_validity_proof_context_state_keypair.pubkey(),
+            &sender_kp.pubkey(),
+            &sender_kp.pubkey(),
+            &[&sender_kp],
+        )
+        .await?;
+    token
+        .confidential_transfer_close_context_state_account(
+            &range_proof_context_state_keypair.pubkey(),
+            &sender_kp.pubkey(),
+            &sender_kp.pubkey(),
+            &[&sender_kp],
+        )
+        .await?;
     println!("Closed all context state accounts");
 
     Ok(())

@@ -6,8 +6,8 @@ use spl_token_client::{
     token::Token,
 };
 
-use crate::helper::handle_token_response;
 use super::apply_pending;
+use crate::helper::handle_token_response;
 
 /// Deposits tokens into a confidential account.
 ///
@@ -27,6 +27,8 @@ pub async fn deposite_token_to_confidential(
     token: &Token<ProgramRpcClientSendTransaction>,
     elgamal_kp: &ElGamalKeypair,
     aes_kp: &AeKey,
+
+    amount: u64,
 ) -> Result<()> {
     println!("\n======== Depositing Tokens to Confidential Account ========");
     println!("Note: Confidential transfers use a two-step process:");
@@ -36,14 +38,14 @@ pub async fn deposite_token_to_confidential(
     // Step 1: Deposit tokens to the 'pending' confidential balance.
     println!("\nStep 1: Depositing 100 tokens to pending balance...");
     println!("- Token Account: {}", token_account_kp.pubkey());
-    println!("- Amount: 100 tokens (100,000,000 base units)");
-    
+    println!("- Amount: {} tokens ", amount);
+
     let deposit_sig = token
         .confidential_transfer_deposit(
             &token_account_kp.pubkey(),
             &payer.pubkey(),
-            100 * 10u64.pow(6), // Amount to deposit (adjust for decimals)
-            6,                  // Token decimals
+            amount * 10u64.pow(6), // Amount to deposit (adjust for decimals)
+            6,                     // Token decimals
             &[payer],
         )
         .await?;

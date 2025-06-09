@@ -8,8 +8,8 @@ use spl_token_client::{
     client::{ProgramRpcClientSendTransaction, RpcClientResponse},
     spl_token_2022::{
         extension::{
-            confidential_transfer::{ ConfidentialTransferMint},
-            BaseStateWithExtensions, StateWithExtensionsOwned,
+            confidential_transfer::ConfidentialTransferMint, BaseStateWithExtensions,
+            StateWithExtensionsOwned,
         },
         solana_zk_sdk::encryption::{auth_encryption::AeKey, elgamal::ElGamalKeypair},
         state::{Account, Mint},
@@ -21,10 +21,10 @@ use spl_token_client::{
 
 /// Holds the confidential token account keypair and associated cryptographic keys.
 pub struct ConfTokenAccountRes {
-    pub token_account_kp: Keypair,      // Token account keypair
+    pub token_account_kp: Keypair,       // Token account keypair
     pub user_elgamal_kp: ElGamalKeypair, // ElGamal keypair for confidential encryption
-    pub user_aes_kp: AeKey,             // AE key for confidential encryption
-}   
+    pub user_aes_kp: AeKey,              // AE key for confidential encryption
+}
 
 // =================== Helper Functions ===================
 
@@ -108,7 +108,6 @@ pub async fn fetch_token_account_with_extensions(
     token_account_pubkey: &Pubkey,
 ) -> Result<()> {
     // Fetch raw account data from the chain &[u8] type data
-    println!("Fetching the raw token account data.......");
     let account_data = rpc_client
         .get_account_data(token_account_pubkey)
         .await

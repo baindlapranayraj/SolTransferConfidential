@@ -32,6 +32,7 @@ use crate::helper::{complete_ixs, ConfTokenAccountRes};
 pub async fn create_confidential_token_acc(
     payer: &Keypair,
     mint_kp: &Keypair,
+
     rpc_client: &RpcClient,
     token: &Token<ProgramRpcClientSendTransaction>,
 ) -> Result<ConfTokenAccountRes> {
@@ -45,7 +46,7 @@ pub async fn create_confidential_token_acc(
     let elgamal_kp = ElGamalKeypair::new_from_signer(&payer, &token_account_kp.pubkey().to_bytes())
         .expect("Unable to create Elgamal KP");
     println!("Created ElGamal keypair for confidential encryption");
-    
+
     let aes_kp = AeKey::new_from_signer(&payer, &token_account_kp.pubkey().to_bytes())
         .expect("Unable to create AES KP");
     println!("Created AES key for confidential encryption");
