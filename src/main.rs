@@ -14,27 +14,6 @@ use helper::*;
 pub mod confidential;
 use confidential::*;
 
-//
-// Common stuff :
-//  - RPC connect
-//  - Alice and Bob keypair generation
-//  - Confidential Mint Account
-//  - Confidential Token Account for Alice and Bob
-//
-// ++++++++++++++++++++++++++++++++++++  CLI stuff ++++++++++++++++++++++++++++++++++++
-//  match input {
-//   check_token_account =>{
-//     alice =>{},
-//     bob =>{}
-//   },
-//
-//   mint_tokens =>{},
-//
-//   confidential_deposite_pending => {},
-//   confidential_transfer_tokens => {},
-//   confidential_withdraw_tokens =>{}
-//  }
-
 #[tokio::main]
 async fn main() -> Result<()> {
     println!("\n======== Creating Connection to Local Solana RPC ========");
@@ -153,10 +132,7 @@ async fn main() -> Result<()> {
                             )
                             .await?;
 
-                        println!(
-                            "✅ Successfully minted {} tokens for Alice!",
-                            amount
-                        );
+                        println!("✅ Successfully minted {} tokens for Alice!", amount);
                         break;
                     }
                     2 => {
@@ -174,10 +150,7 @@ async fn main() -> Result<()> {
                             )
                             .await?;
 
-                        println!(
-                            "✅ Successfully minted {} tokens for Bob!",
-                            amount
-                        );
+                        println!("✅ Successfully minted {} tokens for Bob!", amount);
                         break;
                     }
                     _ => {
@@ -242,9 +215,7 @@ async fn main() -> Result<()> {
                 stdin().read_line(&mut user).expect("❌ Invalid Input");
                 let user: i8 = user.trim().parse().expect("❌ Invalid Input");
 
-                println!(
-                    "🔄 Enter amount to transfer confidentially:"
-                );
+                println!("🔄 Enter amount to transfer confidentially:");
                 let mut amount = String::new();
                 stdin().read_line(&mut amount).expect("❌ Invalid input");
 
@@ -253,7 +224,10 @@ async fn main() -> Result<()> {
                 match user {
                     1 => {
                         // Transfer Tokens Confidentially Alice to Bob
-                        println!("🔄 Transferring {} tokens confidentially from Alice to Bob...", amount);
+                        println!(
+                            "🔄 Transferring {} tokens confidentially from Alice to Bob...",
+                            amount
+                        );
                         transfer_tokens(
                             amount,
                             &token,
@@ -271,7 +245,10 @@ async fn main() -> Result<()> {
                     }
                     2 => {
                         // Transfer Tokens Confidentially Bob to Alice
-                        println!("🔄 Transferring {} tokens confidentially from Bob to Alice...", amount);
+                        println!(
+                            "🔄 Transferring {} tokens confidentially from Bob to Alice...",
+                            amount
+                        );
                         transfer_tokens(
                             amount,
                             &token,
@@ -301,9 +278,7 @@ async fn main() -> Result<()> {
                 stdin().read_line(&mut user).expect("❌ Invalid Input");
                 let user: i8 = user.trim().parse().expect("❌ Invalid Input");
 
-                println!(
-                    "🏧 Enter amount to withdraw confidentially:"
-                );
+                println!("🏧 Enter amount to withdraw confidentially:");
                 let mut amount = String::new();
                 stdin().read_line(&mut amount).expect("❌ Invalid input");
 
